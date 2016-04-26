@@ -19,21 +19,21 @@ void status_task(void *pParam){
     int16_t gyro_data[4];
     float acc_module, ax = 0.0f, ay = 0.0f, az = 0.0f;
     float temp, gx,gy,gz;
+    uint32_t seconds;
     //uint32_t i = 0, spi_fr;
     
     static const TickType_t delay = 500 * portTICK_PERIOD_MS;
 
     uart_strln("Status task started");
 
-    vTaskDelay(6*delay);
-    
     for(;;){
         tick = xTaskGetTickCount();
 
         get_accel_raw(acc_data);
 
-        sprintf(buf, "\033[2JTime from start: %ld sec.\n\r",
-                tick / 1000 / portTICK_PERIOD_MS);
+        seconds = tick / 1000 / portTICK_PERIOD_MS;
+        sprintf(buf, "\033[2JTime from start - %ld sec.  %ld days %02ld:%02ld:%02ld\n\r",
+                seconds, seconds/86400, (seconds/3600)%24, (seconds/60)%60, seconds % 60);
         uart_str(buf);
 
         sprintf(buf, "Accelerometer raw data x: %6d, y: %6d, z:%6d.\n\r",
