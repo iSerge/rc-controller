@@ -1,0 +1,7 @@
+build/
+kernel7.elf
+kernel7.hex
+kernel7.img
+kernel7.list
+kernel7.map
+kernel7.syms
