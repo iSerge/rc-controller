@@ -1,0 +1,14 @@
+description: fix a minor spelling error
+author: Michael Gilbert <mgilbert@debian.org>
+
+--- a/src/mod_auth.c
++++ b/src/mod_auth.c
+@@ -279,7 +279,7 @@ static handler_t mod_auth_uri_handler(se
+ 				}
+ 			} else {
+ 				log_error_write(srv, __FILE__, __LINE__, "ss",
+-						"unknown authentification type:",
++						"unknown authentication type:",
+ 						http_authorization);
+ 			}
+ 		}

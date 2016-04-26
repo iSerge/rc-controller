@@ -1,0 +1,30 @@
+#! /bin/sh -e
+# postinst script for lighttpd
+
+set -e
+
+if [ "$1" = "configure" ]; then
+	if [ ! -r /var/www/html/index.lighttpd.html ]; then
+		cp /usr/share/lighttpd/index.html /var/www/html/index.lighttpd.html
+	fi
+
+        # Remove a possibly dangling symlink for the obsolete conffile
+        if  dpkg --compare-versions "$2" lt-nl "1.4.32-1" && \
+            [ -L /etc/lighttpd/conf-enabled/10-access.conf -a \
+            ! -f /etc/lighttpd/conf-available/10-access.conf ]; then
+                rm -f /etc/lighttpd/conf-enabled/10-access.conf
+        fi
+
+fi
+
+# dh_installinit will call this function upon failure of rc.d invocation
+# Fixes: #383425
+start_failed()
+{
+	echo "Failed to start Lighttpd. Maybe another webserver is already listening on port 80?"
+	exit 0
+}
+
+#DEBHELPER#
+
+exit 0

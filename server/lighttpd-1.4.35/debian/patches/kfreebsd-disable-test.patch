@@ -1,0 +1,18 @@
+description: disable mod-fastcgi test on kfreebsd
+author: Michael Gilbert <mgilbert@debian.org>
+
+--- a/tests/run-tests.pl	2014-03-23 06:02:39.000000000 +0000
++++ b/tests/run-tests.pl	2014-03-23 06:04:40.473881736 +0000
+@@ -16,5 +16,12 @@
+ 		push @fs, $srcdir.'/'.$f;
+ 	}
+ }
++
++# avoid indeterminant test on kfreebsd
++use Config;
++if (index($Config{'archname'}, 'freebsd') != -1) {
++	@fs = grep(!/mod-fastcgi.t/, @fs);
++}
++
+ closedir DIR;
+ runtests (sort @fs);

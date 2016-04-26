@@ -1,0 +1,16 @@
+description: disable sslv3 by default
+author: Stefan Bühler <stbuehler@web.de>
+origin: http://git.lighttpd.net/lighttpd/lighttpd-1.x.git/commit/?id=084df7e99a8738be79f83e330415a8963280dc4a
+bug-debian: https://bugs.debian.org/765702
+
+--- lighttpd-1.4.35.orig/src/configfile.c
++++ lighttpd-1.4.35/src/configfile.c
+@@ -182,7 +182,7 @@ static int config_insert(server *srv) {
+ 		s->ssl_honor_cipher_order = 1;
+ 		s->ssl_empty_fragments = 0;
+ 		s->ssl_use_sslv2 = 0;
+-		s->ssl_use_sslv3 = 1;
++		s->ssl_use_sslv3 = 0;
+ 		s->use_ipv6      = 0;
+ 		s->set_v6only    = 1;
+ 		s->defer_accept  = 0;

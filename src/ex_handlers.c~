@@ -1,0 +1,6 @@
+#include "trace.h"
+
+extern void hang();
+
+
+
