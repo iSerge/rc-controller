@@ -49,6 +49,7 @@ int main(void) {
     
 	rpi_cpu_irq_disable();
 	rpi_irq_init();
+    rpi_gpio_init_ev_facility();
 
 	rpi_gpio_sel_fun(47, GPIO_FSEL_OUT);			// RDY led
 	rpi_gpio_sel_fun(35, GPIO_FSEL_OUT);			// RDY led

@@ -55,6 +55,17 @@ typedef struct {
     //Ignoring the reserved and test bytes
 } RPI_GPIO_t;
 
+typedef void (*RPI_GPIO_EV_HANDLER_t)(void *pParam);
+typedef struct {
+    RPI_GPIO_EV_HANDLER_t pHandler;
+    void *pParam;
+} RPI_GPIO_EV_TABLE_t;
+
+void rpi_gpio_init_ev_facility();
+int rpi_gpio_register_ev_handler(uint32_t pin,
+                                 RPI_GPIO_EV_HANDLER_t pHandler,
+                                 void *pParam);
+
 /* GPIO pin setup */
 void rpi_gpio_sel_fun(uint32_t pin, uint32_t func);
 

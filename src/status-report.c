@@ -75,7 +75,7 @@ void status_task(void *pParam){
 
         vTaskList(buf);
         uart_strln(buf);
-
+        uart_str("\n\r");
 
         /*
         //if(0 == i){

@@ -8,6 +8,9 @@
 #include <stdint.h>
 
 #include "rpi_gpio.h"
+#include "rpi_irq.h"
+
+#include "trace.h"
 
 void rpi_gpio_sel_fun(uint32_t pin, uint32_t func) {
     int offset = pin / 10;
@@ -155,4 +158,67 @@ void rpi_gpio_ev_detect_disable(uint32_t pin, GPIO_EV_SEL_t events){
     if(events & GPIO_EV_ASYNC_FALLING_EDGE){
         RPI_GPIO->GPAFEN[offset] &= ~mask;
     }
+}
+
+#define RPI_TOTAL_GPIO 64
+static RPI_GPIO_EV_TABLE_t g_rpi_gpio_ev_table[RPI_TOTAL_GPIO];
+
+#define clz(a) \
+ ({ unsigned long __value, __arg = (a); \
+     asm ("clz\t%0, %1": "=r" (__value): "r" (__arg)); \
+     __value; })
+
+static void rpi_gpio_ev_dispatcher(void *pParam){
+    uint32_t event_detect_status;
+    int pin;
+
+    event_detect_status = RPI_GPIO->GPEDS[0];
+    if(event_detect_status){
+        pin = clz(event_detect_status);
+        goto call_handler;
+    }
+
+    event_detect_status = RPI_GPIO->GPEDS[1];
+    if (event_detect_status){
+        pin = clz(event_detect_status) + 32;
+        goto call_handler;
+    }
+
+    return;
+
+ call_handler:
+    if((void*)0 != g_rpi_gpio_ev_table[pin].pHandler){
+        g_rpi_gpio_ev_table[pin].pHandler(g_rpi_gpio_ev_table[pin].pParam);
+    } else {
+        rpi_gpio_ev_clear_status(pin);
+    }
+
+    (void)pParam;
+}
+
+void rpi_gpio_init_ev_facility(){
+    int i;
+    for(i = 0; i < RPI_TOTAL_GPIO; ++i){
+        g_rpi_gpio_ev_table[i].pHandler = (void*) 0;
+        g_rpi_gpio_ev_table[i].pParam = (void*) 0;
+    }
+
+    rpi_irq_register_handler(RPI_IRQ_ID_GPIO_0, rpi_gpio_ev_dispatcher, (void*)0);
+    rpi_irq_register_handler(RPI_IRQ_ID_GPIO_1, rpi_gpio_ev_dispatcher, (void*)1);
+    rpi_irq_register_handler(RPI_IRQ_ID_GPIO_2, rpi_gpio_ev_dispatcher, (void*)2);
+    //rpi_irq_register_handler(RPI_IRQ_ID_GPIO_3, rpi_gpio_ev_dispatcher, (void*)3);
+}
+
+int rpi_gpio_register_ev_handler(uint32_t pin,
+                                  RPI_GPIO_EV_HANDLER_t pHandler,
+                                  void *pParam)
+{
+    if(RPI_TOTAL_GPIO <= pin){
+        return -1;
+    }
+    
+    g_rpi_gpio_ev_table[pin].pHandler = pHandler;
+    g_rpi_gpio_ev_table[pin].pParam = pParam;
+
+    return pin;
 }

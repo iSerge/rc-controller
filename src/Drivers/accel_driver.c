@@ -68,14 +68,11 @@ static void driver_task(void *pParam){
 
     uart_strln("Driver: init i2c perifireals");
     
-    rpi_irq_register_handler(RPI_IRQ_ID_GPIO_0, accelISR, NULL);
+    rpi_gpio_register_ev_handler(17, accelISR, NULL);
     uart_strln("Driver: irq_register handler");
 
     rpi_gpio_ev_detect_enable(17, GPIO_EV_STATUS | GPIO_EV_RISING_EDGE);
     uart_strln("Driver: gpio event enable");
-
-    rpi_irq_enable(RPI_IRQ_ID_GPIO_0);
-    uart_strln("Driver: irq enable");
 
     //rpi_i2c_set_reg(ADXL345_ADDR, ADXL345_INT_MAP, ADXL345_INT_DATA_READY);
     rpi_i2c_set_reg(ADXL345_ADDR, ADXL345_INT_MAP, 0);
@@ -84,6 +81,9 @@ static void driver_task(void *pParam){
 
     uart_strln("Driver: adxl345 interrupt enable");
     
+    rpi_irq_enable(RPI_IRQ_ID_GPIO_0);
+    uart_strln("Driver: irq enable");
+
     for(;;){
         //uart_strln("Driver: reading data from queue");
         ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
