@@ -22,7 +22,7 @@ static void accelISR();
 
 void init_accel_driver(){
     BaseType_t xReturned;
-    uart_strln("\033[2JStaring driver task");
+    uart_strln("\033[2JStaring accel driver task");
     xReturned = xTaskCreate(driver_task, "Accel driver", 1024,
                             NULL, configMAX_PRIORITIES - 2, &xHandlingTask);
     if(pdPASS == xReturned){
@@ -85,7 +85,6 @@ static void driver_task(void *pParam){
     uart_strln("Driver: irq enable");
 
     for(;;){
-        //uart_strln("Driver: reading data from queue");
         ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
 
         ++driver_count;
@@ -100,7 +99,6 @@ static void driver_task(void *pParam){
         gyro_data[1] = gyro_data[1] * 0.8 + 0.2 * gyro_data_raw[1];
         gyro_data[2] = gyro_data[2] * 0.8 + 0.2 * gyro_data_raw[2];
         gyro_data[3] = gyro_data[3] * 0.8 + 0.2 * gyro_data_raw[3];
-        //vTaskDelay(1);
     }
 
     uart_strln("Driver: finish");

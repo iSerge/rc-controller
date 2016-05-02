@@ -24,6 +24,7 @@ OBJECTS += $(BUILD_DIR)src/Drivers/i2c_itg3200.o
 OBJECTS += $(BUILD_DIR)src/Drivers/rpi_spi_slave.o
 OBJECTS += $(BUILD_DIR)src/Drivers/accel_driver.o
 OBJECTS += $(BUILD_DIR)src/Drivers/servo_driver.o
+OBJECTS += $(BUILD_DIR)src/Drivers/hc_sr04_driver.o
 
 #
 #	Selected HEAP implementation for FreeRTOS.

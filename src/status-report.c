@@ -8,15 +8,18 @@
 #include "Drivers/rpi_i2c.h"
 #include "Drivers/rpi_spi_slave.h"
 #include "Drivers/accel_driver.h"
+#include "Drivers/hc_sr04_driver.h"
 
 #include "trace.h"
 
 static char buf[512];
 
 void status_task(void *pParam){
+    int i;
     TickType_t tick;
     int16_t acc_data[3];
     int16_t gyro_data[4];
+    float sonar_data[4];
     float acc_module, ax = 0.0f, ay = 0.0f, az = 0.0f;
     float temp, gx,gy,gz;
     uint32_t seconds;
@@ -25,6 +28,9 @@ void status_task(void *pParam){
     static const TickType_t delay = 500 * portTICK_PERIOD_MS;
 
     uart_strln("Status task started");
+
+
+    //vTaskDelay(15000);
 
     for(;;){
         tick = xTaskGetTickCount();
@@ -73,6 +79,14 @@ void status_task(void *pParam){
                 get_irq_count(), get_driver_count());
         uart_str(buf);
 
+        for(i = 0; i < 4; ++i){
+            sonar_data[i] = sonar_get_distance(i);
+        }
+
+        sprintf(buf, "Sonar data -- 1: %7.1f cm, 2: %7.1f cm, 3: %7.1f cm, 4: %7.1f cm",
+                sonar_data[0], sonar_data[1], sonar_data[2], sonar_data[3]);
+        uart_strln(buf);
+        
         vTaskList(buf);
         uart_strln(buf);
         uart_str("\n\r");

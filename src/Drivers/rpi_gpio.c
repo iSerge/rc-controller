@@ -10,8 +10,6 @@
 #include "rpi_gpio.h"
 #include "rpi_irq.h"
 
-#include "trace.h"
-
 void rpi_gpio_sel_fun(uint32_t pin, uint32_t func) {
     int offset = pin / 10;
     uint32_t val = RPI_GPIO->GPFSEL[offset];// Read in the original register value.
@@ -84,14 +82,14 @@ uint32_t rpi_gpio_ev_read_status(uint32_t pin, GPIO_EV_SEL_t event){
         result = RPI_GPIO->GPAFEN[offset];
     }
 
-    return result & mask ? 1 : 0;
+    return (result & mask) ? 1 : 0;
 }
 
 void rpi_gpio_ev_clear_status(uint32_t pin){
     uint32_t offset = pin / 32;
     uint32_t mask = (1 <<(pin % 32));
 
-    RPI_GPIO->GPEDS[offset] |= mask;
+    RPI_GPIO->GPEDS[offset] = mask;
 }
 
 void rpi_gpio_ev_detect_enable(uint32_t pin, GPIO_EV_SEL_t events){
@@ -99,7 +97,7 @@ void rpi_gpio_ev_detect_enable(uint32_t pin, GPIO_EV_SEL_t events){
     uint32_t mask = (1 <<(pin % 32));
 
     if(events & GPIO_EV_STATUS){
-        RPI_GPIO->GPEDS[offset] |= mask;
+        RPI_GPIO->GPEDS[offset] = mask;
     }
 
     if(events & GPIO_EV_RISING_EDGE){
@@ -132,7 +130,7 @@ void rpi_gpio_ev_detect_disable(uint32_t pin, GPIO_EV_SEL_t events){
     uint32_t mask = (1 <<(pin % 32));
 
     if(events & GPIO_EV_STATUS){
-        RPI_GPIO->GPEDS[offset] &= ~mask;
+        RPI_GPIO->GPEDS[offset] = mask;
     }
 
     if(events & GPIO_EV_RISING_EDGE){
@@ -160,17 +158,23 @@ void rpi_gpio_ev_detect_disable(uint32_t pin, GPIO_EV_SEL_t events){
     }
 }
 
-#define RPI_TOTAL_GPIO 64
+#define RPI_TOTAL_GPIO 54
 static RPI_GPIO_EV_TABLE_t g_rpi_gpio_ev_table[RPI_TOTAL_GPIO];
 
-#define clz(a) \
- ({ unsigned long __value, __arg = (a); \
-     asm ("clz\t%0, %1": "=r" (__value): "r" (__arg)); \
-     __value; })
+static uint32_t clz(uint32_t event_detect_status) {
+    uint32_t pin = 0;
+    uint32_t mask = 1UL;
+    while(!(event_detect_status & mask)){
+        ++pin;
+        mask <<= 1;
+    }
+
+    return pin;
+}
 
 static void rpi_gpio_ev_dispatcher(void *pParam){
     uint32_t event_detect_status;
-    int pin;
+    uint32_t pin;
 
     event_detect_status = RPI_GPIO->GPEDS[0];
     if(event_detect_status){
@@ -178,7 +182,7 @@ static void rpi_gpio_ev_dispatcher(void *pParam){
         goto call_handler;
     }
 
-    event_detect_status = RPI_GPIO->GPEDS[1];
+    event_detect_status = RPI_GPIO->GPEDS[1] & 0x3FFFFFUL;
     if (event_detect_status){
         pin = clz(event_detect_status) + 32;
         goto call_handler;
@@ -202,6 +206,28 @@ void rpi_gpio_init_ev_facility(){
         g_rpi_gpio_ev_table[i].pHandler = (void*) 0;
         g_rpi_gpio_ev_table[i].pParam = (void*) 0;
     }
+
+    //Disable all GPIO events
+    RPI_GPIO->GPREN[0] = 0;
+    RPI_GPIO->GPREN[1] = 0;
+
+    RPI_GPIO->GPFEN[0] = 0;
+    RPI_GPIO->GPFEN[1] = 0;
+
+    RPI_GPIO->GPHEN[0] = 0;
+    RPI_GPIO->GPHEN[1] = 0;
+
+    RPI_GPIO->GPLEN[0] = 0;
+    RPI_GPIO->GPLEN[1] = 0;
+
+    RPI_GPIO->GPAREN[0] = 0;
+    RPI_GPIO->GPAREN[1] = 0;
+
+    RPI_GPIO->GPAFEN[0] = 0;
+    RPI_GPIO->GPAFEN[1] = 0;
+
+    RPI_GPIO->GPEDS[0] = 0xFFFFFFFF;
+    RPI_GPIO->GPEDS[1] = 0x003FFFFF;
 
     rpi_irq_register_handler(RPI_IRQ_ID_GPIO_0, rpi_gpio_ev_dispatcher, (void*)0);
     rpi_irq_register_handler(RPI_IRQ_ID_GPIO_1, rpi_gpio_ev_dispatcher, (void*)1);

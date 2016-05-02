@@ -5,6 +5,7 @@
 #include "Drivers/rpi_gpio.h"
 #include "Drivers/rpi_i2c.h"
 #include "Drivers/accel_driver.h"
+#include "Drivers/hc_sr04_driver.h"
 
 extern void uart_strln(const char *str);
 
@@ -49,6 +50,7 @@ int main(void) {
     
 	rpi_cpu_irq_disable();
 	rpi_irq_init();
+
     rpi_gpio_init_ev_facility();
 
 	rpi_gpio_sel_fun(47, GPIO_FSEL_OUT);			// RDY led
@@ -56,7 +58,9 @@ int main(void) {
 
     rpi_i2c_init();
     init_accel_driver();
-    uart_strln("Main: created driver task");
+    uart_strln("Main: created accel driver task");
+    init_sonar_driver();
+    uart_strln("Main: created sonar driver task");
 
     xReturned = xTaskCreate(status_task, "Status", 512, NULL, 2, NULL);
     if (pdPASS == xReturned){
