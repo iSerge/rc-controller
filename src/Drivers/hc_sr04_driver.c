@@ -1,3 +1,4 @@
+
 #include <FreeRTOS.h>
 #include <task.h>
 #include <queue.h>
@@ -13,7 +14,6 @@ static void sonar_driver_task(void *pParam);
 
 static QueueHandle_t sonar_data_q = NULL;
 
-#define SONAR_ECHO_PIN 23
 #define SSPEED_CM_S 34320.0
 
 #define MAX_SONARS 4
@@ -55,12 +55,14 @@ static void sonarISR(void *pParam){
     static uint64_t start;
     static uint64_t now;
     static uint32_t delta;
-
+    static uint32_t echo;
     now = rpi_sys_timer_get64();
     
-    rpi_gpio_ev_clear_status(id2echo[(uint32_t)pParam]);
+    echo = id2echo[(uint32_t)pParam];
 
-    if(rpi_gpio_get_val(SONAR_ECHO_PIN)){
+    rpi_gpio_ev_clear_status(echo);
+
+    if(rpi_gpio_get_val(echo)){
         start = now;
     } else {
         delta = (uint32_t)((now - start)&0xFFFFFFFF);
@@ -91,8 +93,8 @@ void runMeasureCycle(int sensor_id){
     xQueueReset(sonar_data_q);
     
     rpi_gpio_set_val(pin, 1);
-    //microDelay(10);
-    vTaskDelay(1);
+    microDelay(10);
+    //vTaskDelay(1);
     rpi_gpio_set_val(pin, 0);
 
     qResult = xQueueReceive(sonar_data_q, &echo_time, 50);
@@ -107,13 +109,15 @@ void runMeasureCycle(int sensor_id){
 }
 
 void sonar_driver_task(void *pParam){
-    int i;
+    int i = 0;
     
     rpi_irq_enable(RPI_IRQ_ID_GPIO_0);
    
-    for(i = 0; 1; ++i){
-        runMeasureCycle(i % 4);
-        vTaskDelay(10);
+    while(1){
+        for(i = 0; i < MAX_SONARS; ++i){
+            runMeasureCycle(i);
+            vTaskDelay(10);
+        }
     }
     
     vTaskDelete(NULL);
