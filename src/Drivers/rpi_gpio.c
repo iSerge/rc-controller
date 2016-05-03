@@ -25,9 +25,9 @@ void rpi_gpio_set_val(uint32_t pin, uint32_t val) {
     uint32_t mask = (1 << (pin % 32));
 
     if (val) {
-        RPI_GPIO->GPSET[offset] |= mask;
+        RPI_GPIO->GPSET[offset] = mask;
     } else {
-        RPI_GPIO->GPCLR[offset] |= mask;
+        RPI_GPIO->GPCLR[offset] = mask;
     }
 }
 
