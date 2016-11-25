@@ -66,6 +66,8 @@ static void driver_task(void *pParam){
     adxl345_init();
     itg3200_init();
 
+    portTASK_USES_FLOATING_POINT();
+    
     uart_strln("Driver: init i2c perifireals");
     
     rpi_gpio_register_ev_handler(17, accelISR, NULL);

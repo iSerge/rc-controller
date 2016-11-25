@@ -56,10 +56,10 @@ typedef struct {
     volatile uint32_t DISABLE_BASIC;
 } RPI_IRQ_t;
 
-#define RPI_IRQ ((volatile RPI_IRQ_t *) RPI_IRQ_BASE)
+#define RPI_IRQ ((volatile RPI_IRQ_t *) (RPI_IRQ_BASE))
 
 /* RPI IRQ handler function */
-typedef void (*RPI_IRQ_HANDLER_t)(void *pParam);
+typedef void (*RPI_IRQ_HANDLER_t)(int nIRQ, void *pParam);
 
 /* RPI irq handler function table */
 typedef struct {

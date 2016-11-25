@@ -29,6 +29,7 @@ kernel7.syms: kernel7.elf
 	$(Q)$(OBJDUMP) -t kernel7.elf > $@
 
 kernel7.hex : kernel7.elf
+	$(Q)$(PRETTY) HEX $(MODULE_NAME) $@
 	$(Q)$(OBJCOPY) kernel7.elf -O ihex $@
 
 kernel7.elf: LDFLAGS += -L "/usr/lib/arm-none-eabi/newlib/fpu" -lc -lm

@@ -24,9 +24,9 @@ void wait_i2c_done()
 }
 
 I2C_Status rpi_i2c_write(unsigned int dev_addr,
-                   unsigned int reg_addr,
-                   int len,
-                   unsigned char *data)
+                         unsigned int reg_addr,
+                         int len,
+                         unsigned char *data)
 {
     int i = -1;
     int rem = len + 1;
@@ -37,7 +37,7 @@ I2C_Status rpi_i2c_write(unsigned int dev_addr,
     BSC0->S = CLEAR_STATUS;
     BSC0->A = dev_addr & 0x7F;
     BSC0->DLEN = len+1;
-    while ((0 != rem)  && (i < BSC_FIFO_SIZE)) {
+    while ((0 != rem)  && (BSC0->S & BSC_S_TXD)) {
 		BSC0->FIFO = i < 0 ? reg_addr : *(data+i);
 		++i;
 		--rem;
@@ -70,8 +70,8 @@ I2C_Status rpi_i2c_write(unsigned int dev_addr,
 }
 
 I2C_Status rpi_i2c_set_reg(unsigned int dev_addr,
-                     unsigned int reg_addr,
-                     unsigned char value)
+                           unsigned int reg_addr,
+                           unsigned char value)
 {
     return rpi_i2c_write(dev_addr, reg_addr, 1, &value);
 }
@@ -118,9 +118,9 @@ I2C_Status _read(unsigned char *data,
 }
 
 I2C_Status rpi_i2c_read(unsigned int dev_addr,
-                  unsigned int reg_addr,
-                  int len,
-                  unsigned char *data)
+                        unsigned int reg_addr,
+                        int len,
+                        unsigned char *data)
 {
     I2C_Status res = rpi_i2c_write(dev_addr, reg_addr, 0, 0);
     if(I2C_OK == res){

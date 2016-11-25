@@ -2,7 +2,8 @@
 #	FreeRTOS portable layer for RaspberryPi
 #
 OBJECTS += $(BUILD_DIR)FreeRTOS/Source/portable/GCC/RaspberryPi/port.o
-OBJECTS += $(BUILD_DIR)FreeRTOS/Source/portable/GCC/RaspberryPi/portisr.o
+OBJECTS += $(BUILD_DIR)FreeRTOS/Source/portable/GCC/RaspberryPi/portISR.o
+OBJECTS += $(BUILD_DIR)FreeRTOS/Source/portable/GCC/RaspberryPi/portASM.o
 
 #
 #	FreeRTOS Core
@@ -29,14 +30,12 @@ OBJECTS += $(BUILD_DIR)src/Drivers/hc_sr04_driver.o
 #
 #	Selected HEAP implementation for FreeRTOS.
 #
-OBJECTS += $(BUILD_DIR)/FreeRTOS/Source/portable/MemMang/heap_4.o
+OBJECTS += $(BUILD_DIR)FreeRTOS/Source/portable/MemMang/heap_4.o
 
 #
 #	Startup and platform initialisation code.
 #
 OBJECTS += $(BUILD_DIR)src/startup.o
-#OBJECTS += $(BUILD_DIR)src/rpi_boot_v1.o
-
 
 #
 #	Main Test Program

@@ -1,13 +1,28 @@
 .extern	system_init
 .extern __bss_start
 .extern __bss_end
-.extern vFreeRTOS_ISR
-.extern vPortYieldProcessor
+.extern FreeRTOS_IRQ_Handler
+.extern FreeRTOS_SVC_Handler    
 .extern rpi_cpu_irq_disable
 .extern main
-	.section .init
-	.globl _start
-;; 
+.section .init
+.globl _start
+;;
+
+.equ    CPSR_MODE_USER,         0x10
+.equ    CPSR_MODE_FIQ,          0x11
+.equ    CPSR_MODE_IRQ,          0x12
+.equ    CPSR_MODE_SVR,          0x13
+.equ    CPSR_MODE_ABORT,        0x17
+.equ    CPSR_MODE_HYP,          0x1A
+.equ    CPSR_MODE_UNDEFINED,    0x1B
+.equ    CPSR_MODE_SYSTEM,       0x1F
+
+// See ARM section A2.5 (Program status registers)
+.equ    CPSR_IRQ_INHIBIT,       0x80
+.equ    CPSR_FIQ_INHIBIT,       0x40
+.equ    CPSR_THUMB,             0x20
+    
 _start:
 	;@ All the following instruction should be read as:
 	;@ Load the address at symbol into the program counter.
@@ -26,11 +41,11 @@ _start:
 	;@ Here we create an exception address table! This means that reset/hang/irq can be absolute addresses
 reset_handler:      .word reset
 undefined_handler:  .word undefined_instruction
-swi_handler:        .word vPortYieldProcessor
+swi_handler:        .word FreeRTOS_SVC_Handler
 prefetch_handler:   .word prefetch_abort
 data_handler:       .word data_abort
 unused_handler:     .word unused
-irq_handler:        .word vFreeRTOS_ISR
+irq_handler:        .word FreeRTOS_IRQ_Handler
 fiq_handler:        .word fiq
 
 reset:
@@ -70,20 +85,29 @@ continueBoot:
 
 
 	;@	Set up the various STACK pointers for different CPU modes
-    ;@ (PSR_IRQ_MODE|PSR_FIQ_DIS|PSR_IRQ_DIS)
-    mov r0,#0xD2
+    mov r0,#(CPSR_MODE_UNDEFINED | CPSR_IRQ_INHIBIT | CPSR_FIQ_INHIBIT )
     msr cpsr_c,r0
-    mov sp,#0x8000
+    mov sp,#(64 * 1024 * 1024)
 
-    ;@ (PSR_FIQ_MODE|PSR_FIQ_DIS|PSR_IRQ_DIS)
-    mov r0,#0xD1
+    mov r0,#(CPSR_MODE_ABORT | CPSR_IRQ_INHIBIT | CPSR_FIQ_INHIBIT )
     msr cpsr_c,r0
-    mov sp,#0x4000
+    mov sp,#(63 * 1024 * 1024)
 
-    ;@ (PSR_SVC_MODE|PSR_FIQ_DIS|PSR_IRQ_DIS)
-    mov r0,#0xD3
+    mov r0,#(CPSR_MODE_FIQ | CPSR_IRQ_INHIBIT | CPSR_FIQ_INHIBIT )
     msr cpsr_c,r0
-	mov sp,#0x8000000
+    mov sp,#(62 * 1024 * 1024)
+
+    mov r0,#(CPSR_MODE_IRQ | CPSR_IRQ_INHIBIT | CPSR_FIQ_INHIBIT )
+    msr cpsr_c,r0
+	mov sp,#(61 * 1024 * 1024)
+
+    mov r0,#(CPSR_MODE_SYSTEM | CPSR_IRQ_INHIBIT | CPSR_FIQ_INHIBIT )
+    msr cpsr_c,r0
+	mov sp,#(60 * 1024 * 1024)
+
+    mov r0,#(CPSR_MODE_SVR | CPSR_IRQ_INHIBIT | CPSR_FIQ_INHIBIT )
+    msr cpsr_c,r0
+	mov sp,#(59 * 1024 * 1024)
 
 	ldr r0, =__bss_start
 	ldr r1, =__bss_end
@@ -96,26 +120,25 @@ zero_loop:
 	strlt	r2,[r0], #4
 	blt		zero_loop
 
-    mov     sp, #0x37000000     ;@ Setting stack pinter in last addr
     
     bl      fpu_init            
 	bl 		rpi_cpu_irq_disable
 
-	;@ 	mov	sp,#0x1000000
 	b main									;@ We're ready?? Lets start main execution!
 fpu_init:
     STMFD   sp!,{r0,r1}
-    ;@ MRC     p15, 0, r0, c1, c1, 2
-    ;@ ORR     r0, r0, #0x3<<10 ;@ enable neon
-    ;@ BIC     r0, r0, #0x3<<14 ;@ clear nsasedis/nsd32dis
-    ;@ MCR     p15, 0, r0, c1, c1, 2
+    //MRC     p15, 0, r0, c1, c1, 2
+    //ORR     r0, r0, #0x3<<10 ;@ enable neon
+    //BIC     r0, r0, #0x3<<14 ;@ clear nsasedis/nsd32dis
+    //MCR     p15, 0, r0, c1, c1, 2
     LDR     r0, =(0xF << 20)
     MCR     p15, 0, r0, c1, c0, 2
     MOV     r3, #0x40000000 
     VMSR    FPEXC, r3
     LDMFD   sp!,{r0,r1}
     bx     lr
-	.section .text
+
+.section .text
 
 .extern c_undefined_instruction
 .extern c_prefetch_abort
@@ -155,3 +178,9 @@ GET32:
 .globl dummy
 dummy:
     bx lr
+
+.globl GET_SP
+GET_SP: 
+    mov r0,sp
+    bx lr
+

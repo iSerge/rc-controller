@@ -1,3 +1,4 @@
+
 /*
     FreeRTOS V7.2.0 - Copyright (C) 2012 Real Time Engineers Ltd.
 	
@@ -88,7 +89,7 @@ extern void vAssertCalled(char*, int);
 #define configUSE_TICK_HOOK			0
 #define configCPU_CLOCK_HZ			( ( unsigned long ) 250000000 )	
 #define configTICK_RATE_HZ			( ( TickType_t ) 1000 )
-#define configMAX_PRIORITIES		( ( UBaseType_t ) 5 )
+#define configMAX_PRIORITIES		5
 #define configMINIMAL_STACK_SIZE	( ( unsigned short ) 128 )
 #define configTOTAL_HEAP_SIZE		( ( size_t ) ( 4096*1024 ) )
 #define configMAX_TASK_NAME_LEN		( 16 )
@@ -97,10 +98,21 @@ extern void vAssertCalled(char*, int);
 #define configUSE_16_BIT_TICKS		0
 #define configIDLE_SHOULD_YIELD		1
 #define configUSE_APPLICATION_TASK_TAG	1
+#define configSUPPORT_DYNAMIC_ALLOCATION 1
+#define configUSE_TASK_FPU_SUPPORT 2
 
 /* Co-routine definitions. */
 #define configUSE_CO_ROUTINES 		0
 #define configMAX_CO_ROUTINE_PRIORITIES ( 2 )
+
+extern void vSetupTimerInterrupt( void );
+#define configSETUP_TICK_INTERRUPT vSetupTimerInterrupt
+
+extern void vClearTimerInterrupt( void );
+#define configCLEAR_TICK_INTERRUPT vClearTimerInterrupt
+
+extern volatile uint32_t portEOIStub;
+#define configEOI_ADDRESS 0x8014UL
 
 /* Set the following definitions to 1 to include the API function, or zero
 to exclude the API function. */

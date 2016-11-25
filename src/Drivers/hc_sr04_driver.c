@@ -21,6 +21,13 @@ static float sonar_data[MAX_SONARS] = {0.0, 0.0, 0.0, 0.0};
 static uint32_t id2pin[MAX_SONARS] = {7, 8, 25, 24};
 static uint32_t id2echo[MAX_SONARS] = {23, 9, 10, 22};
 
+extern uint32_t GET_SP();
+static uint32_t sp = 0;
+
+uint32_t get_sonar_sp(){
+    return sp;
+}
+
 void init_sonar_driver(){
     uint32_t i;
 
@@ -57,6 +64,8 @@ static void sonarISR(void *pParam){
     static uint32_t delta;
     static uint32_t echo;
     now = rpi_sys_timer_get64();
+
+    sp = GET_SP();
     
     echo = id2echo[(uint32_t)pParam];
 
@@ -110,6 +119,8 @@ void runMeasureCycle(int sensor_id){
 
 void sonar_driver_task(void *pParam){
     int i = 0;
+
+    portTASK_USES_FLOATING_POINT();
     
     rpi_irq_enable(RPI_IRQ_ID_GPIO_0);
    

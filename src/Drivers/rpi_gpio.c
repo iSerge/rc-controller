@@ -172,7 +172,7 @@ static uint32_t clz(uint32_t event_detect_status) {
     return pin;
 }
 
-static void rpi_gpio_ev_dispatcher(void *pParam){
+static void rpi_gpio_ev_dispatcher(int nIRQ, void *pParam){
     uint32_t event_detect_status;
     uint32_t pin;
 
@@ -197,6 +197,7 @@ static void rpi_gpio_ev_dispatcher(void *pParam){
         rpi_gpio_ev_clear_status(pin);
     }
 
+    (void) nIRQ;
     (void)pParam;
 }
 

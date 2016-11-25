@@ -10,7 +10,6 @@
 #include "rpi_systimer.h"
 
 uint64_t rpi_sys_timer_get64(void) {
-
     uint64_t ret = 0;       // zero a very unlikely value for this timer
     uint32_t hi, lo, temp;  // temporary variables
     uint32_t cnt = 3;       // Timeout counter, do 3 tries
@@ -28,6 +27,5 @@ uint64_t rpi_sys_timer_get64(void) {
         ret = (ret << (sizeof(uint32_t) * 8)) | lo;
     }
     return ret;
-
 }
 

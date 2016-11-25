@@ -12,6 +12,8 @@
 
 #include "trace.h"
 
+extern uint32_t GET_SP();
+
 static char buf[512];
 
 void status_task(void *pParam){
@@ -23,7 +25,10 @@ void status_task(void *pParam){
     float acc_module, ax = 0.0f, ay = 0.0f, az = 0.0f;
     float temp, gx,gy,gz;
     uint32_t seconds;
+    uint32_t irq_sp, sp;
     //uint32_t i = 0, spi_fr;
+
+    portTASK_USES_FLOATING_POINT();
     
     static const TickType_t delay = 500 * portTICK_PERIOD_MS;
 
@@ -124,6 +129,12 @@ void status_task(void *pParam){
         sprintf(buf, "BSC_SL DR: %lx, FR: %lx\n\r", BSC_SL->DR, spi_fr);
         uart_str(buf);
         */
+
+        sp = GET_SP();
+        irq_sp = get_sonar_sp();
+
+        sprintf(buf, "Stack: %8lx, IRQ stack: %8lx\n\r", sp, irq_sp);
+        uart_str(buf);
 
         vTaskDelayUntil(&tick, delay);
     }

@@ -73,7 +73,7 @@ void taskSwitchOut(void * taskHandle){
     TaskHandle_t task = (TaskHandle_t)taskHandle;
     TaskStatus_t xTaskDetails;
     //vTaskGetInfo( task, &xTaskDetails, pdTRUE, eInvalid );
-    snprintf(buf, 512, "Task <%s> switched out\n\r", pcTaskGetTaskName(task));
+    snprintf(buf, 512, "Task <%s> switched out\n\r", pcTaskGetName(task));
     uart_str(buf);
 
     (void) xTaskDetails;
@@ -83,7 +83,7 @@ void taskSwitchIn(void * taskHandle){
     TaskHandle_t task = (TaskHandle_t)taskHandle;
     TaskStatus_t xTaskDetails;
     //vTaskGetInfo( task, &xTaskDetails, pdTRUE, eInvalid );
-    snprintf(buf, 512, "Task <%s> switched in\n\r", pcTaskGetTaskName(task));
+    snprintf(buf, 512, "Task <%s> switched in\n\r", pcTaskGetName(task));
     uart_str(buf);
 
     (void) xTaskDetails;
