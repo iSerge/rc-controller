@@ -16,6 +16,23 @@ extern uint32_t GET_SP();
 
 static char buf[512];
 
+static char to_hex(uint8_t v){
+    if (/*0 <= v &&*/ v <= 9) return '0'+v;
+    else return 'A' + v - 10;
+}
+
+static void out_hex_buf(const uint8_t* const buf){
+    uint32_t i;
+    
+    for(i = 0; i < 32; ++i){
+        uart_char(to_hex((buf[i] >> 4) & 0x0F));
+        uart_char(to_hex(buf[i] & 0x0F));
+        uart_char(' ');
+        if(15 == i) uart_str("\n\r");
+    }
+    uart_str("\n\r\n\r");
+}
+
 void status_task(void *pParam){
     int i;
     TickType_t tick;
@@ -26,7 +43,7 @@ void status_task(void *pParam){
     float temp, gx,gy,gz;
     uint32_t seconds;
     uint32_t irq_sp, sp;
-    //uint32_t i = 0, spi_fr;
+    uint32_t spi_fr;
 
     portTASK_USES_FLOATING_POINT();
     
@@ -80,8 +97,8 @@ void status_task(void *pParam){
                 temp, gx,gy,gz);
         uart_str(buf);
 
-        sprintf(buf, "Acc driver status -- irq: %6ld, driver: %6ld\n\r",
-                get_irq_count(), get_driver_count());
+        sprintf(buf, "Acc driver status \n\r irq: %6ld, driver: %6ld, restarts: %6ld\n\r",
+                get_irq_count(), get_driver_count(), get_driver_restarts());
         uart_str(buf);
 
         for(i = 0; i < 4; ++i){
@@ -91,44 +108,26 @@ void status_task(void *pParam){
         sprintf(buf, "Sonar data -- 1: %7.1f cm, 2: %7.1f cm, 3: %7.1f cm, 4: %7.1f cm",
                 sonar_data[0], sonar_data[1], sonar_data[2], sonar_data[3]);
         uart_strln(buf);
+        uart_str("\n\r");
+
+        spi_fr = BSC_SL->FR;
+        sprintf(buf, "BSC_SL RX FIFO start level: %lu, RXFE: %lu, RXFF: %lu\n\r",
+                (spi_fr & BSC_SL_FR_RXLVL_MASK) >> BSC_SL_FR_RXLVL_SHIFT,
+                spi_fr & BSC_SL_FR_RXFE, spi_fr & BSC_SL_FR_RXFF);
+        uart_str(buf);
+        sprintf(buf, "BSC_SL TX FIFO start level: %lu, TXFE: %lu, TXFF: %lu\n\r",
+                (spi_fr & BSC_SL_FR_TXLVL_MASK) >> BSC_SL_FR_TXLVL_SHIFT,
+                spi_fr & BSC_SL_FR_TXFE, spi_fr & BSC_SL_FR_TXFF);
+        uart_str(buf);
+        sprintf(buf, "BSC_SL FR: %lx, irq: %lu\n\r",
+                spi_fr, spi_slave_irq());
+        uart_str(buf);
+
+        uart_strln("SPI buffer:");
+        out_hex_buf(get_spi_buffer());
         
         vTaskList(buf);
         uart_strln(buf);
-        uart_str("\n\r");
-
-        /*
-        //if(0 == i){
-            BSC_SL->FR = 0;
-            BSC_SL->CR = BSC_SL_CR_EN | BSC_SL_CR_SPI | BSC_SL_CR_BRK | BSC_SL_CR_TXE;
-            i = 0;
-            //vTaskDelay(10);
-            
-            spi_fr = BSC_SL->FR;
-            sprintf(buf, "BSC_SL TX FIFO start level: %lu, TXFE: %lu, TXFF: %lu\n\r",
-                    (spi_fr & BSC_SL_FR_TXLVL_MASK) >> BSC_SL_FR_TXLVL_SHIFT,
-                    spi_fr & BSC_SL_FR_TXFE, spi_fr & BSC_SL_FR_TXFF);
-            uart_str(buf);
-
-            //vTaskDelay(10);
-            do {
-                BSC_SL->DR = i & 0xFF;
-                ++i;
-                //vTaskDelay(10);
-                spi_fr = BSC_SL->FR;
-            } while (!(spi_fr & BSC_SL_FR_TXFF));
-            //}
-        
-        sprintf(buf, "BSC_SL TX FIFO full level: %lu, number of writes: %lu\n\r",
-                ((spi_fr & BSC_SL_FR_TXLVL_MASK) >> BSC_SL_FR_TXLVL_SHIFT), i);
-        uart_str(buf);
-
-        sprintf(buf, "BSC_SL RX FIFO level: %lu\n\r",
-                ((spi_fr & BSC_SL_FR_RXLVL_MASK) >> BSC_SL_FR_RXLVL_SHIFT));
-        uart_str(buf);
-
-        sprintf(buf, "BSC_SL DR: %lx, FR: %lx\n\r", BSC_SL->DR, spi_fr);
-        uart_str(buf);
-        */
 
         sp = GET_SP();
         irq_sp = get_sonar_sp();

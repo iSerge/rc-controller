@@ -1,6 +1,7 @@
 #ifndef __TRACE_H__
 #define __TRACE_H__
 
+void uart_char(unsigned int ra);
 void uart_str(const char* str);
 void uart_strln(const char* str);
 

@@ -29,6 +29,8 @@ typedef struct {
 #define BSC_SL_DR_OE 0x0100
 #define BSC_SL_DR_UE 0x0200
 
+#define BSC_SL_DR_DATA_MASK 0x00FF
+
 #define BSC_SL_DR_TXBUSY 0x010000
 #define BSC_SL_DR_RXFE   0x020000
 #define BSC_SL_DR_TXFF   0x040000
@@ -61,6 +63,11 @@ typedef struct {
 #define BSC_SL_CR_HISTCTRLEN 0x1000
 #define BSC_SL_CR_INV_TXF    0x2000
 
+#define BSC_SL_CR_SPI_MODE_0 (BSC_SL_CR_CPOL_0|BSC_SL_CR_CPHA_0|BSC_SL_CR_SPI)
+#define BSC_SL_CR_SPI_MODE_1 (BSC_SL_CR_CPOL_0|BSC_SL_CR_CPHA_1|BSC_SL_CR_SPI)
+#define BSC_SL_CR_SPI_MODE_2 (BSC_SL_CR_CPOL_1|BSC_SL_CR_CPHA_0|BSC_SL_CR_SPI)
+#define BSC_SL_CR_SPI_MODE_3 (BSC_SL_CR_CPOL_1|BSC_SL_CR_CPHA_1|BSC_SL_CR_SPI)
+
 #define BSC_SL_FR_TXBUSY 0x01
 #define BSC_SL_FR_RXFE   0x02
 #define BSC_SL_FR_TXFF   0x04
@@ -68,10 +75,10 @@ typedef struct {
 #define BSC_SL_FR_TXFE   0x10
 #define BSC_SL_FR_RXBUSY 0x20
 
-#define BSC_SL_FR_TXLVL_MASK  0xF800
-#define BSC_SL_FR_TXLVL_SHIFT 6
-#define BSC_SL_FR_RXLVL_MASK  0x07C0
+#define BSC_SL_FR_RXLVL_MASK  0xF800
 #define BSC_SL_FR_RXLVL_SHIFT 11
+#define BSC_SL_FR_TXLVL_MASK  0x07C0
+#define BSC_SL_FR_TXLVL_SHIFT 6
 
 #define BSC_SL_IFLS_TXIFLSEL_1_8 0
 #define BSC_SL_IFLS_TXIFLSEL_1_4 1
@@ -107,5 +114,8 @@ typedef struct {
 
 
 void rpi_spi_slave_init();
+const uint8_t* get_spi_buffer(void);
+uint32_t read_spi_buf(uint32_t buf_len, uint8_t* out_buf);
+uint32_t spi_slave_irq();
 
 #endif

@@ -6,6 +6,7 @@
 #include "Drivers/rpi_i2c.h"
 #include "Drivers/accel_driver.h"
 #include "Drivers/hc_sr04_driver.h"
+#include "Drivers/rpi_spi_slave.h"
 
 extern void uart_strln(const char *str);
 
@@ -61,6 +62,8 @@ int main(void) {
     uart_strln("Main: created accel driver task");
     init_sonar_driver();
     uart_strln("Main: created sonar driver task");
+
+    rpi_spi_slave_init();
 
     xReturned = xTaskCreate(status_task, "Status", 512, NULL, 2, NULL);
     if (pdPASS == xReturned){

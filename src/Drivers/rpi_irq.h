@@ -13,6 +13,7 @@
 
 /* 32 ~ 63 : Enable & Disable & Pending 2 */
 #define RPI_IRQ_ID_SPI_SLAVE         43
+#define RPI_IRQ_ID_I2C_SLAVE         43
 #define RPI_IRQ_ID_PWA0              45
 #define RPI_IRQ_ID_PWA1              46
 #define RPI_IRQ_ID_SMI               48
