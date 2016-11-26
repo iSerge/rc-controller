@@ -32,7 +32,7 @@ void init_accel_driver(){
     }
 }
 
-static uint32_t irq_count = 0, driver_count = 0;
+static uint32_t irq_count = 0, driver_count = 0, driver_restarts = 0;
 static BaseType_t xHigherPriorityTaskWoken;
 
 static void accelISR(void *pParam)
@@ -61,33 +61,31 @@ static int16_t gyro_data_raw[4] = {0, 0, 0, 0};
 static int16_t accel_data[3] = {0, 0, 0};
 static int16_t gyro_data[4] = {0, 0, 0, 0};
 
-static void driver_task(void *pParam){
-    uart_strln("Driver: start");
+static void init_adxl345(void){
     adxl345_init();
     itg3200_init();
 
-    portTASK_USES_FLOATING_POINT();
-    
-    uart_strln("Driver: init i2c perifireals");
-    
     rpi_gpio_register_ev_handler(17, accelISR, NULL);
-    uart_strln("Driver: irq_register handler");
 
     rpi_gpio_ev_detect_enable(17, GPIO_EV_STATUS | GPIO_EV_RISING_EDGE);
-    uart_strln("Driver: gpio event enable");
 
-    //rpi_i2c_set_reg(ADXL345_ADDR, ADXL345_INT_MAP, ADXL345_INT_DATA_READY);
     rpi_i2c_set_reg(ADXL345_ADDR, ADXL345_INT_MAP, 0);
     rpi_i2c_set_reg(ADXL345_ADDR, ADXL345_INT_ENABLE, ADXL345_INT_DATA_READY);
-    //rpi_i2c_set_reg(ADXL345_ADDR, ADXL345_INT_ENABLE, 0);
+}
 
-    uart_strln("Driver: adxl345 interrupt enable");
+static void driver_task(void *pParam){
+    portTASK_USES_FLOATING_POINT();
+
+    init_adxl345();
     
     rpi_irq_enable(RPI_IRQ_ID_GPIO_0);
-    uart_strln("Driver: irq enable");
 
     for(;;){
-        ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
+        if(pdFALSE == xTaskNotifyWait( 0, 0, 0, pdMS_TO_TICKS(1000) )){
+            ++driver_restarts;
+            init_adxl345();
+            continue;
+        }
 
         ++driver_count;
         adxl345_read_axes(accel_raw);
@@ -135,3 +133,8 @@ uint32_t get_irq_count(){
 uint32_t get_driver_count(){
     return driver_count;
 }
+
+uint32_t get_driver_restarts(){
+    return driver_restarts;
+}
+

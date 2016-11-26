@@ -16,5 +16,6 @@ float get_temp();
 
 uint32_t get_irq_count();
 uint32_t get_driver_count();
+uint32_t get_driver_restarts();
 
 #endif
