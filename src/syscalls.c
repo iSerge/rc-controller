@@ -9,14 +9,17 @@ extern int  __HEAP_START;
 
 caddr_t _sbrk ( int incr )
 {
-  static unsigned char *heap = NULL;
-  unsigned char *prev_heap;
+  static char* heap = (void*)0;
+  char* prev_heap;
 
-  if (heap == NULL) {
-    heap = (unsigned char *)&__HEAP_START;
+  if (heap == (void*)0) {
+    heap = (void*)&__HEAP_START;
   }
   prev_heap = heap;
-  /* check removed to show basic approach */
+
+  /* Normally here should be check for stack pointer overlapping.
+     Not really care for it under FreeRTOS environment. Every task
+     have it's own fixed length stack. */
 
   heap += incr;
 
