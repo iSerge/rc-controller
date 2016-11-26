@@ -6,7 +6,7 @@
 
 #include "Drivers/rpi_base.h"
 #include "Drivers/rpi_i2c.h"
-#include "Drivers/rpi_spi_slave.h"
+#include "Drivers/rpi_bsc_slave.h"
 #include "Drivers/accel_driver.h"
 #include "Drivers/hc_sr04_driver.h"
 

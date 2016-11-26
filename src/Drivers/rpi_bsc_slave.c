@@ -1,6 +1,6 @@
 #include "rpi_irq.h"
 #include "rpi_gpio.h"
-#include "rpi_spi_slave.h"
+#include "rpi_bsc_slave.h"
 
 #include "trace.h"
 
