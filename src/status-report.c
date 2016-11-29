@@ -37,12 +37,9 @@ void status_task(void *pParam){
     int i;
     TickType_t tick;
     int16_t acc_data[3];
-    int16_t gyro_data[4];
     float sonar_data[4];
     float acc_module, ax = 0.0f, ay = 0.0f, az = 0.0f;
-    float temp, gx,gy,gz;
     uint32_t seconds;
-    uint32_t irq_sp, sp;
     uint32_t spi_fr;
 
     portTASK_USES_FLOATING_POINT();
@@ -50,9 +47,6 @@ void status_task(void *pParam){
     static const TickType_t delay = 500 * portTICK_PERIOD_MS;
 
     uart_strln("Status task started");
-
-
-    //vTaskDelay(15000);
 
     for(;;){
         tick = xTaskGetTickCount();
@@ -106,7 +100,7 @@ void status_task(void *pParam){
 
         uart_strln("SPI buffer:");
         out_hex_buf(get_spi_buffer());
-        
+
         vTaskList(buf);
         uart_strln(buf);
 

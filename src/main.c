@@ -1,5 +1,6 @@
 #include <FreeRTOS.h>
 #include <task.h>
+#include <semphr.h>
 
 #include "Drivers/rpi_irq.h"
 #include "Drivers/rpi_gpio.h"
@@ -10,29 +11,36 @@
 
 extern void uart_strln(const char *str);
 
-void task1(void *pParam) {
-	const TickType_t xDelay = 500 * portTICK_PERIOD_MS;
+static SemaphoreHandle_t xMutex = NULL;
+static const TickType_t xDelay = pdMS_TO_TICKS(500);
 
-	int i = 0;
+
+void task1(void *pParam) {
+    xMutex = xSemaphoreCreateMutex();
+    
 	while(1) {
-		i++;
-		rpi_gpio_set_val(47, 1);
-		rpi_gpio_set_val(35, 0);
-		vTaskDelay(xDelay);
+        if(pdTRUE == xSemaphoreTake(xMutex, 10)){
+            rpi_gpio_set_val(47, 1);
+            rpi_gpio_set_val(35, 0);
+            vTaskDelay(xDelay);
+            xSemaphoreGive(xMutex);
+            vTaskDelay(xDelay);
+        }
 	}
     (void) pParam;
 }
 
 void task2(void *pParam) {
-	const TickType_t xDelay = 500 * portTICK_PERIOD_MS;
+    while(NULL == xMutex){}
 
-	int i = 0;
 	while(1) {
-		i++;
-		vTaskDelay(xDelay/2);
-		rpi_gpio_set_val(47, 0);
-		rpi_gpio_set_val(35, 1);
-		vTaskDelay(xDelay/2);
+        if(pdTRUE == xSemaphoreTake(xMutex, 10)){
+            rpi_gpio_set_val(47, 0);
+            rpi_gpio_set_val(35, 1);
+            vTaskDelay(xDelay);
+            xSemaphoreGive(xMutex);
+            vTaskDelay(xDelay);
+        }
 	}
     (void) pParam;
 }
@@ -71,7 +79,7 @@ int main(void) {
     } else {
         uart_strln("Main: status task creation fail");
     }
-    
+
 	xReturned = xTaskCreate(task1, "LED_0", 128, NULL, 1, NULL);
     if (pdPASS == xReturned){
         uart_strln("Main: created task1");
