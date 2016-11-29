@@ -68,9 +68,6 @@ void status_task(void *pParam){
                 acc_data[0], acc_data[1], acc_data[2]);
         uart_str(buf);
 
-        //ax = (float)acc_data[0]/256.0;
-        //ay = (float)acc_data[1]/256.0;
-        //az = (float)acc_data[2]/256.0;
         ax = (float)acc_data[0]*0.004;
         ay = (float)acc_data[1]*0.004;
         az = (float)acc_data[2]*0.004;
@@ -79,22 +76,6 @@ void status_task(void *pParam){
         
         sprintf(buf, "Accelerometer data -- x: %7.4f, y: %7.4f, z:%7.4f, abs: %7.4f\n\r",
                 ax, ay, az, acc_module);
-        uart_str(buf);
-
-        get_turn_rate_raw(gyro_data+1);
-        gyro_data[0] = get_temp_raw();
-
-        sprintf(buf, "Gyro raw data -- temp: %d, x: %d, y:%d, z: %d\n\r",
-                gyro_data[0], gyro_data[1], gyro_data[2], gyro_data[3]);
-        uart_str(buf);
-
-
-        temp = (float)(gyro_data[0]+13200)/280.0 + 35.0;
-        gx = (float)gyro_data[1] / 14.375;
-        gy = (float)gyro_data[2] / 14.375;
-        gz = (float)gyro_data[3] / 14.375;
-        sprintf(buf, "Gyro -- temp: %7.4f, x: %7.4f, y:%7.4f, z: %7.4f\n\r",
-                temp, gx,gy,gz);
         uart_str(buf);
 
         sprintf(buf, "Acc driver status \n\r irq: %6ld, driver: %6ld, restarts: %6ld\n\r",
@@ -128,12 +109,6 @@ void status_task(void *pParam){
         
         vTaskList(buf);
         uart_strln(buf);
-
-        sp = GET_SP();
-        irq_sp = get_sonar_sp();
-
-        sprintf(buf, "Stack: %8lx, IRQ stack: %8lx\n\r", sp, irq_sp);
-        uart_str(buf);
 
         vTaskDelayUntil(&tick, delay);
     }

@@ -63,7 +63,7 @@ static int16_t gyro_data[4] = {0, 0, 0, 0};
 
 static void init_adxl345(void){
     adxl345_init();
-    itg3200_init();
+    //itg3200_init();
 
     rpi_gpio_register_ev_handler(17, accelISR, NULL);
 
@@ -89,19 +89,18 @@ static void driver_task(void *pParam){
 
         ++driver_count;
         adxl345_read_axes(accel_raw);
-        itg3200_read_data(gyro_data_raw);
+        //itg3200_read_data(gyro_data_raw);
         
         accel_data[0] = accel_data[0] * 0.8 + 0.2 * accel_raw[0];
         accel_data[1] = accel_data[1] * 0.8 + 0.2 * accel_raw[1];
         accel_data[2] = accel_data[2] * 0.8 + 0.2 * accel_raw[2];
         
-        gyro_data[0] = gyro_data[0] * 0.9 + 0.1 * gyro_data_raw[0];
-        gyro_data[1] = gyro_data[1] * 0.8 + 0.2 * gyro_data_raw[1];
-        gyro_data[2] = gyro_data[2] * 0.8 + 0.2 * gyro_data_raw[2];
-        gyro_data[3] = gyro_data[3] * 0.8 + 0.2 * gyro_data_raw[3];
+        //gyro_data[0] = gyro_data[0] * 0.9 + 0.1 * gyro_data_raw[0];
+        //gyro_data[1] = gyro_data[1] * 0.8 + 0.2 * gyro_data_raw[1];
+        //gyro_data[2] = gyro_data[2] * 0.8 + 0.2 * gyro_data_raw[2];
+        //gyro_data[3] = gyro_data[3] * 0.8 + 0.2 * gyro_data_raw[3];
     }
 
-    uart_strln("Driver: finish");
     vTaskDelete( NULL );
     (void) pParam;
 }
